@@ -21,12 +21,15 @@
 
 #include "bmp180.h"
 
-uint8_t bmp180_initialize(uint8_t mode, I2C_HandleTypeDef i2c) {
+uint8_t bmp180_initialize(uint8_t mode, I2C_HandleTypeDef* i2c) {
   if (mode > BMP180_ULTRAHIGHRES)
     mode = BMP180_ULTRAHIGHRES;
   oversampling = mode;
 
   bmp180_i2c = i2c;
+
+  if(HAL_I2C_IsDeviceReady(bmp180_i2c, BMP180_I2CADDR, 2, 10) != HAL_OK)
+	  return 0;
 
   if (bmp180_read8(0xD0) != 0x55) return 0;
 
@@ -160,25 +163,17 @@ float bmp180_readAltitude(float sealevelPressure) {
 
 uint8_t bmp180_read8(uint8_t a) {
   uint8_t ret = 0;
-  HAL_I2C_Mem_Read(&bmp180_i2c, BMP180_I2CADDR, a, 1, &ret, 1, HAL_MAX_DELAY);
+  //while ((HAL_SPI_GetState(&bmp180_i2c) != HAL_I2C_STATE_READY));
+  HAL_I2C_Mem_Read(bmp180_i2c, BMP180_I2CADDR, a, 1, &ret, 1, HAL_MAX_DELAY);
   return ret;
 }
 
 uint16_t bmp180_read16(uint8_t a) {
   uint16_t ret;
-  uint8_t tmp;
-
-  HAL_I2C_Master_Transmit(&bmp180_i2c, BMP180_I2CADDR, &a, 1, HAL_MAX_DELAY); // send register adress
-  HAL_I2C_Master_Receive(&bmp180_i2c, BMP180_I2CADDR, &tmp, 1, HAL_MAX_DELAY); //read byte
-  ret = tmp;
-  ret <<= 8;
-  HAL_I2C_Master_Receive(&bmp180_i2c, BMP180_I2CADDR, &tmp, 1, HAL_MAX_DELAY); //read byte
-  ret |= tmp;
-
+  HAL_I2C_Mem_Read(bmp180_i2c, BMP180_I2CADDR, a, 2, &ret, 2, HAL_MAX_DELAY);
   return ret;
 }
 
 void bmp180_write8(uint8_t a, uint8_t d) {
-	HAL_I2C_Master_Transmit(&bmp180_i2c, BMP180_I2CADDR, &a, 1, HAL_MAX_DELAY); // send register adress
-	HAL_I2C_Master_Transmit(&bmp180_i2c, BMP180_I2CADDR, &d, 1, HAL_MAX_DELAY); // send data
+	HAL_I2C_Mem_Write(bmp180_i2c, BMP180_I2CADDR, a, 1, &d, 1, HAL_MAX_DELAY);
 }

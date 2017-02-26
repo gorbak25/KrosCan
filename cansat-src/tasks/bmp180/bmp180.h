@@ -44,7 +44,7 @@ typedef enum
 } BMP180Mode;
 
 
-I2C_HandleTypeDef bmp180_i2c;
+I2C_HandleTypeDef* bmp180_i2c;
 BMP180Mode oversampling;
 int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;
 uint16_t ac4, ac5, ac6;
@@ -71,7 +71,7 @@ uint16_t ac4, ac5, ac6;
 void HandleBarometer();
 
 //Functions
-uint8_t bmp180_initialize(BMP180Mode mode, I2C_HandleTypeDef i2c);  // by default go highres
+uint8_t bmp180_initialize(BMP180Mode mode, I2C_HandleTypeDef* i2c);  // by default go highres
 float bmp180_readTemperature(void);
 int32_t bmp180_readPressure(void);
 int32_t bmp180_readSealevelPressure(float altitude_meters);
