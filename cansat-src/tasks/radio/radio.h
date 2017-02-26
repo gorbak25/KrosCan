@@ -1,9 +1,9 @@
 /*
  * rfm69.h
  *
- *  Created on: Nov 26, 2016
- *      Author: Mathis Schmieder (DB9MAT), db9mat@giev.de
+ *  	Author: Grzegorz Uriasz, gorbak25@gmail.com
  *
+ *		This library is based upon the RFM69 library by Mathis Schmieder (DB9MAT), db9mat@giev.de
  *      This library is heavily based upon the RFM69-STM32 library by André Heßling
  *      	https://github.com/ahessling/RFM69-STM32
  *      Parts were also borrowed from LowPowerLab's RFM69 library for Arduino

@@ -17,9 +17,11 @@
 #include <stm32f1xx_hal.h>
 
 #include "tasks/radio/radio.h"
+#include "tasks/bmp180/bmp180.h"
 
 //externs
 extern SPI_HandleTypeDef hspi1;
+extern I2C_HandleTypeDef hi2c1;
 
 //functions
 void CanSatMain();

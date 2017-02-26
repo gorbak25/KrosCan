@@ -59,8 +59,21 @@ void CanSatMain()
 	rfm69_setMode(RFM69_MODE_RX);
 	//rfm69_sleep();
 
+	trace_printf("Radio initialized\n");
 
-	trace_printf("Radio initialized");
+	while(bmp180_initialize(BMP180_ULTRAHIGHRES, hi2c1)==0)
+	{
+		trace_printf("Failed to initialize barometer\n");
+	}
+
+	trace_printf("Barometer initialized\n");
+
+	while(1)
+	{
+		float alt = bmp180_readAltitude(BMP180_STANDARD_PRESURE);
+		trace_printf("%f\n", alt);
+		HAL_Delay(100);
+	}
 
 	//start tasks
 	xTaskCreate(HandleRadioRX, "radiorx", 128, NULL, tskIDLE_PRIORITY+1, &tsk_radio_rx);
