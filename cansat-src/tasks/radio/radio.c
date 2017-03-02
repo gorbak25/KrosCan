@@ -108,6 +108,12 @@ void HandleRadioTX()
 
 			rfm69_send(buftx,pos);
 		}
+		else if(uxQueueMessagesWaiting(Barometer_telemetry)>0)
+		{
+			buftx[0] = 'A';
+			xQueueReceive(Barometer_telemetry, buftx+1, 0);
+			rfm69_send(buftx,5);
+		}
 		else
 		{
 
@@ -189,9 +195,9 @@ static const uint8_t rfm69_base_config[][2] =
 void rfm69_reset()
 {
 	// generate reset impulse
-	HAL_GPIO_WritePin(RADIO_RESET_GPIO_Port, RADIO_RESET_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RADIO_RESET_GPIO_Port, RADIO_RESET_Pin, GPIO_PIN_SET);
 	HAL_Delay(1);
-	HAL_GPIO_WritePin(RADIO_RESET_GPIO_Port, RADIO_RESET_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(RADIO_RESET_GPIO_Port, RADIO_RESET_Pin, GPIO_PIN_RESET);
 
 	// wait until module is ready
 	HAL_Delay(10);
@@ -693,6 +699,7 @@ void rfm69_waitForPacketSent()
 	{
 		if(xSemaphoreTake(PacketSent_sem, 5)) //wait for 5 ms for the next interupt
 		{
+			rfm69_writeRegister(REG_DIOMAPPING1, RF_DIOMAPPING1_DIO0_01); // set DIO0 to "PAYLOADREADY" in receive mode
 			return;
 		}
 		else
@@ -702,10 +709,11 @@ void rfm69_waitForPacketSent()
 			{
 				vTaskDelay(1);
 			}
+			rfm69_writeRegister(REG_DIOMAPPING1, RF_DIOMAPPING1_DIO0_01); // set DIO0 to "PAYLOADREADY" in receive mode
 			return;
 		}
 	}
-	 rfm69_writeRegister(REG_DIOMAPPING1, RF_DIOMAPPING1_DIO0_01); // set DIO0 to "PAYLOADREADY" in receive mode
+
 }
 
 /**

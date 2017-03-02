@@ -16,6 +16,7 @@
 #ifndef RFM69_H_
 #define RFM69_H_
 
+#include <main.h>
 #include <stm32f1xx_hal.h>
 #include <FreeRTOS.h>
 #include <task.h>
@@ -60,6 +61,7 @@ extern SemaphoreHandle_t ModeReady_sem;
 extern SemaphoreHandle_t Radio_mutex;
 
 extern QueueHandle_t Radio_echo;
+extern QueueHandle_t Barometer_telemetry;
 
 extern TaskHandle_t tsk_radio_tx;
 

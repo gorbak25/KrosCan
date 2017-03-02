@@ -67,6 +67,9 @@ uint16_t ac4, ac5, ac6;
 #define BMP180_READTEMPCMD          0x2E
 #define BMP180_READPRESSURECMD            0x34
 
+//externs
+extern QueueHandle_t Barometer_telemetry;
+
 //Tasks
 void HandleBarometer();
 

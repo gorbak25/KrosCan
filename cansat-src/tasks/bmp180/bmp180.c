@@ -21,6 +21,16 @@
 
 #include "bmp180.h"
 
+void HandleBarometer()
+{
+	float cur_altitude;
+	for(;;)
+	{
+		cur_altitude = bmp180_readAltitude(BMP180_STANDARD_PRESURE);
+		xQueueSendToBack(Barometer_telemetry, (void*)(&cur_altitude), 0);
+	}
+}
+
 uint8_t bmp180_initialize(uint8_t mode, I2C_HandleTypeDef* i2c) {
   if (mode > BMP180_ULTRAHIGHRES)
     mode = BMP180_ULTRAHIGHRES;
@@ -59,7 +69,7 @@ int32_t bmp180_computeB5(int32_t UT) {
 
 uint16_t bmp180_readRawTemperature(void) {
   bmp180_write8(BMP180_CONTROL, BMP180_READTEMPCMD);
-  HAL_Delay(5);
+  vTaskDelay(5);
   return bmp180_read16(BMP180_TEMPDATA);
 }
 
@@ -69,13 +79,13 @@ uint32_t bmp180_readRawPressure(void) {
   bmp180_write8(BMP180_CONTROL, BMP180_READPRESSURECMD + (oversampling << 6));
 
   if (oversampling == BMP180_ULTRALOWPOWER)
-	HAL_Delay(5);
+	vTaskDelay(5);
   else if (oversampling == BMP180_STANDARD)
-	HAL_Delay(8);
+	vTaskDelay(8);
   else if (oversampling == BMP180_HIGHRES)
-	HAL_Delay(14);
+	vTaskDelay(14);
   else
-    HAL_Delay(26);
+	vTaskDelay(26);
 
   raw = bmp180_read16(BMP180_PRESSUREDATA);
 
@@ -169,9 +179,9 @@ uint8_t bmp180_read8(uint8_t a) {
 }
 
 uint16_t bmp180_read16(uint8_t a) {
-  uint16_t ret;
-  HAL_I2C_Mem_Read(bmp180_i2c, BMP180_I2CADDR, a, 2, &ret, 2, HAL_MAX_DELAY);
-  return ret;
+  uint8_t ret[2];
+  HAL_I2C_Mem_Read(bmp180_i2c, BMP180_I2CADDR, a, 1, ret, 2, HAL_MAX_DELAY);
+  return (((uint16_t)ret[0])<<8)|((uint16_t)ret[1]);
 }
 
 void bmp180_write8(uint8_t a, uint8_t d) {

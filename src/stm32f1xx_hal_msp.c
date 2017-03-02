@@ -106,7 +106,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    __HAL_AFIO_REMAP_I2C1_ENABLE();
+    //__HAL_AFIO_REMAP_I2C1_ENABLE();
 
     /* Peripheral clock enable */
     __HAL_RCC_I2C1_CLK_ENABLE();

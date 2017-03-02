@@ -13,6 +13,7 @@ FIL radio_log;
 
 TaskHandle_t tsk_radio_rx;
 TaskHandle_t tsk_radio_tx;
+TaskHandle_t tsk_barometer;
 
 SemaphoreHandle_t PayloadReady_sem;
 SemaphoreHandle_t PacketSent_sem;
@@ -20,6 +21,7 @@ SemaphoreHandle_t ModeReady_sem;
 SemaphoreHandle_t Radio_mutex;
 
 QueueHandle_t Radio_echo;
+QueueHandle_t Barometer_telemetry;
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -36,7 +38,8 @@ void CreateSynchronizationObjects()
 	vSemaphoreCreateBinary(ModeReady_sem);
 	Radio_mutex = xSemaphoreCreateMutex();
 
-	Radio_echo = xQueueCreate(512, sizeof(char));
+	Radio_echo = xQueueCreate(256, sizeof(char));
+	Barometer_telemetry = xQueueCreate(32, sizeof(float));
 
 }
 
@@ -61,14 +64,14 @@ void CanSatMain()
 
 	trace_printf("Radio initialized\n");
 
-	uint8_t i = 0;
+	/*uint8_t i = 0;
 	for(i = 0x00; i<255; i++)
 	{
-	    if(HAL_I2C_IsDeviceReady(&hi2c1, i, 2, 10) == HAL_OK)
+	    if(HAL_I2C_IsDeviceReady(&hi2c2, i, 2, 10) == HAL_OK)
 			trace_printf("Ready: 0x%02x\n", i);
 	    else
 	    	trace_printf("WRONG: 0x%02x\n", i);
-	}
+	}*/
 
 	while(bmp180_initialize(BMP180_ULTRAHIGHRES, &hi2c1)==0)
 	{
@@ -77,16 +80,19 @@ void CanSatMain()
 
 	trace_printf("Barometer initialized\n");
 
-	while(1)
+	/*while(1)
 	{
-		float alt = bmp180_readAltitude(BMP180_STANDARD_PRESURE);
-		trace_printf("%d\n", (int)alt);
+		//uint32_t pres = bmp180_readPressure();
+		float temp = bmp180_readTemperature();
+		//float alt = bmp180_readAltitude(BMP180_STANDARD_PRESURE);
+		trace_printf("%d.%d\n", (int)temp, (int)(temp*100)-(int)temp*100);
 		HAL_Delay(100);
-	}
+	}*/
 
 	//start tasks
 	xTaskCreate(HandleRadioRX, "radiorx", 128, NULL, tskIDLE_PRIORITY+1, &tsk_radio_rx);
 	xTaskCreate(HandleRadioTX, "radiotx", 128, NULL, tskIDLE_PRIORITY+1, &tsk_radio_tx);
+	xTaskCreate(HandleBarometer, "baro", 128, NULL, tskIDLE_PRIORITY+1, &tsk_barometer);
 
 	//start FreeRTOS
 	vTaskStartScheduler();

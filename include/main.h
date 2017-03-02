@@ -53,9 +53,9 @@
 
 #define MOTOR_DISABLE_Pin GPIO_PIN_0
 #define MOTOR_DISABLE_GPIO_Port GPIOA
-#define RADIO_INT_Pin GPIO_PIN_6
+#define RADIO_INT_Pin GPIO_PIN_4
 #define RADIO_INT_GPIO_Port GPIOB
-#define RADIO_MODEREADY_Pin GPIO_PIN_7
+#define RADIO_MODEREADY_Pin GPIO_PIN_5
 #define RADIO_MODEREADY_GPIO_Port GPIOB
 #define GPS_TX_Pin GPIO_PIN_2
 #define GPS_TX_GPIO_Port GPIOA
@@ -69,7 +69,7 @@
 #define RADIO_MISO_GPIO_Port GPIOA
 #define RADIO_MOSI_Pin GPIO_PIN_7
 #define RADIO_MOSI_GPIO_Port GPIOA
-#define RADIO_RESET_PIN GPIO_PIN_5
+#define RADIO_RESET_Pin GPIO_PIN_3
 #define RADIO_RESET_GPIO_Port GPIOB
 #define MOTOR_STEP_Pin GPIO_PIN_0
 #define MOTOR_STEP_GPIO_Port GPIOB
@@ -109,9 +109,9 @@
 #define CAM_VSYNC_GPIO_Port GPIOB
 #define CAM_CLK_Pin GPIO_PIN_7
 #define CAM_CLK_GPIO_Port GPIOB*/
-#define LS_SCL_Pin GPIO_PIN_8
+#define LS_SCL_Pin GPIO_PIN_6
 #define LS_SCL_GPIO_Port GPIOB
-#define LS_SDA_Pin GPIO_PIN_9
+#define LS_SDA_Pin GPIO_PIN_7
 #define LS_SDA_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 

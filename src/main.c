@@ -165,7 +165,7 @@ static void MX_I2C1_Init(void)
 {
 
   hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 5000;
+  hi2c1.Init.ClockSpeed = 400000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -413,77 +413,59 @@ static void MX_USART2_UART_Init(void)
 static void MX_GPIO_Init(void)
 {
 
-  GPIO_InitTypeDef GPIO_InitStruct;
+	  GPIO_InitTypeDef GPIO_InitStruct;
 
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
+	  /* GPIO Ports Clock Enable */
+	  __HAL_RCC_GPIOC_CLK_ENABLE();
+	  __HAL_RCC_GPIOD_CLK_ENABLE();
+	  __HAL_RCC_GPIOA_CLK_ENABLE();
+	  __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  /*Configure GPIO pins : RADIO_INT_Pin RADIO_MODEREADY_Pin */
-  GPIO_InitStruct.Pin = RADIO_INT_Pin|RADIO_MODEREADY_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	  /*Configure GPIO pin Output Level */
+	  HAL_GPIO_WritePin(GPIOA, MOTOR_DISABLE_Pin|RADIO_SS_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pin : MOTOR_DISABLE_Pin */
-  GPIO_InitStruct.Pin = MOTOR_DISABLE_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(MOTOR_DISABLE_GPIO_Port, &GPIO_InitStruct);
+	  /*Configure GPIO pin Output Level */
+	  HAL_GPIO_WritePin(MOTOR_DIR_GPIO_Port, MOTOR_DIR_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pin : RADIO_SS_Pin */
-  GPIO_InitStruct.Pin = RADIO_SS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(RADIO_SS_GPIO_Port, &GPIO_InitStruct);
+	  /*Configure GPIO pin Output Level */
+	  HAL_GPIO_WritePin(GPIOB, SD_SS_Pin|RADIO_RESET_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : MOTOR_DIR_Pin */
-  GPIO_InitStruct.Pin = MOTOR_DIR_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(MOTOR_DIR_GPIO_Port, &GPIO_InitStruct);
+	  /*Configure GPIO pin : MOTOR_DISABLE_Pin */
+	  GPIO_InitStruct.Pin = MOTOR_DISABLE_Pin;
+	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	  HAL_GPIO_Init(MOTOR_DISABLE_GPIO_Port, &GPIO_InitStruct);
 
-	GPIO_InitStruct.Pin = RADIO_RESET_PIN;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(RADIO_RESET_GPIO_Port, &GPIO_InitStruct);
+	  /*Configure GPIO pin : RADIO_SS_Pin */
+	  GPIO_InitStruct.Pin = RADIO_SS_Pin;
+	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	  HAL_GPIO_Init(RADIO_SS_GPIO_Port, &GPIO_InitStruct);
 
+	  /*Configure GPIO pins : MOTOR_DIR_Pin RADIO_RESET_Pin */
+	  GPIO_InitStruct.Pin = MOTOR_DIR_Pin|RADIO_RESET_Pin;
+	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  	  //tmp
-	//GPIO_InitStruct.Pin = MOTOR_STEP_Pin;
-	//GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	//GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	//HAL_GPIO_Init(MOTOR_STEP_GPIO_Port, &GPIO_InitStruct);
+	  /*Configure GPIO pin : SD_SS_Pin */
+	  GPIO_InitStruct.Pin = SD_SS_Pin;
+	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	  HAL_GPIO_Init(SD_SS_GPIO_Port, &GPIO_InitStruct);
 
+	  /*Configure GPIO pins : RADIO_INT_Pin RADIO_MODEREADY_Pin */
+	  GPIO_InitStruct.Pin = RADIO_INT_Pin|RADIO_MODEREADY_Pin;
+	  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+	  GPIO_InitStruct.Pull = GPIO_NOPULL;
+	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+	  /* EXTI interrupt init*/
+	  HAL_NVIC_SetPriority(EXTI4_IRQn, 5, 0);
+	  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
-  /*Configure GPIO pin : SD_SS_Pin */
-  GPIO_InitStruct.Pin = SD_SS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(SD_SS_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : CAM_D0_Pin CAM_D1_Pin CAM_D2_Pin CAM_D3_Pin 
-                           CAM_D4_Pin CAM_D5_Pin */
-  /*GPIO_InitStruct.Pin = CAM_D0_Pin|CAM_D1_Pin|CAM_D2_Pin|CAM_D3_Pin
-                          |CAM_D4_Pin|CAM_D5_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);*/
-
-  /*Configure GPIO pins : CAM_D6_Pin CAM_D7_Pin CAM_PCLK_Pin */
-  /*GPIO_InitStruct.Pin = CAM_D6_Pin|CAM_D7_Pin|CAM_PCLK_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);*/
-
-  /*Configure GPIO pin : CAM_VSYNC_Pin */
-  /*GPIO_InitStruct.Pin = CAM_VSYNC_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  HAL_GPIO_Init(CAM_VSYNC_GPIO_Port, &GPIO_InitStruct);*/
+	  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+	  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, MOTOR_DISABLE_Pin|RADIO_SS_Pin, GPIO_PIN_SET);
@@ -493,9 +475,6 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SD_SS_GPIO_Port, SD_SS_Pin, GPIO_PIN_RESET);
-
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
 
