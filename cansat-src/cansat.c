@@ -14,6 +14,7 @@ FIL radio_log;
 TaskHandle_t tsk_radio_rx;
 TaskHandle_t tsk_radio_tx;
 TaskHandle_t tsk_barometer;
+TaskHandle_t tsk_imu;
 
 SemaphoreHandle_t PayloadReady_sem;
 SemaphoreHandle_t PacketSent_sem;
@@ -71,7 +72,8 @@ void CanSatMain()
 			trace_printf("Ready: 0x%02x\n", i);
 	    else
 	    	trace_printf("WRONG: 0x%02x\n", i);
-	}*/
+	}
+	for(;;);*/
 
 	while(bmp180_initialize(BMP180_ULTRAHIGHRES, &hi2c1)==0)
 	{
@@ -79,6 +81,16 @@ void CanSatMain()
 	}
 
 	trace_printf("Barometer initialized\n");
+
+	while(imu_initalizeLib(&hi2c2)==0)
+	{
+		HAL_I2C_DeInit(&hi2c2);
+		HAL_Delay(10);
+		HAL_I2C_Init(&hi2c2);
+		trace_printf("Failed to initialize IMU\n");
+	}
+
+	trace_printf("IMU initialized\n");
 
 	/*while(1)
 	{
@@ -90,9 +102,10 @@ void CanSatMain()
 	}*/
 
 	//start tasks
-	xTaskCreate(HandleRadioRX, "radiorx", 128, NULL, tskIDLE_PRIORITY+1, &tsk_radio_rx);
-	xTaskCreate(HandleRadioTX, "radiotx", 128, NULL, tskIDLE_PRIORITY+1, &tsk_radio_tx);
+	xTaskCreate(HandleRadioRX, "radiorx", 128, NULL, tskIDLE_PRIORITY+2, &tsk_radio_rx);
+	xTaskCreate(HandleRadioTX, "radiotx", 128, NULL, tskIDLE_PRIORITY+2, &tsk_radio_tx);
 	xTaskCreate(HandleBarometer, "baro", 128, NULL, tskIDLE_PRIORITY+1, &tsk_barometer);
+	xTaskCreate(HandleIMU, "imu", 256, NULL, tskIDLE_PRIORITY+1, &tsk_imu);
 
 	//start FreeRTOS
 	vTaskStartScheduler();

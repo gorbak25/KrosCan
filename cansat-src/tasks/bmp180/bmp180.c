@@ -27,7 +27,8 @@ void HandleBarometer()
 	for(;;)
 	{
 		cur_altitude = bmp180_readAltitude(BMP180_STANDARD_PRESURE);
-		xQueueSendToBack(Barometer_telemetry, (void*)(&cur_altitude), 0);
+		xQueueSendToBack(Barometer_telemetry, (void*)(&cur_altitude), 100);
+		vTaskDelay(100);
 	}
 }
 

@@ -19,7 +19,7 @@
 
 #define TIMEOUT_MODE_READY    100 ///< Maximum amount of time until mode switch [ms]
 #define TIMEOUT_PACKET_SENT   1000 ///< Maximum amount of time until packet must be sent [ms]
-#define CSMA_LIMIT              -80 // upper RX signal sensitivity threshold in dBm for carrier sense access
+#define CSMA_LIMIT              -70 // upper RX signal sensitivity threshold in dBm for carrier sense access
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -74,6 +74,8 @@ void HandleRadioRX()
 					taskEXIT_CRITICAL();*/
 
 					//taskENTER_CRITICAL();
+					char lenc = (char)len;
+					xQueueSendToBack(Radio_echo, &lenc, 0);
 					for(uint8_t i = 0; i<len; i++)
 					{
 						xQueueSendToBack(Radio_echo, (void*)(bufrx+i), 0);
@@ -90,41 +92,65 @@ void HandleRadioRX()
 }
 
 char buftx[50];
+int buftx_pos;
+uint8_t buftx_full;
+const uint8_t max_packet_len = 50;
 void HandleRadioTX()
 {
-	int p_c = 0;
+	buftx_pos = 0;
+	buftx_full = 0;
 	for(;;)
 	{
-		if(uxQueueMessagesWaiting(Radio_echo)>1)
+		//if no more data can be buffered then send out the packet
+		if(buftx_full == 1)
 		{
-			uint8_t pos = 0;
-			//taskENTER_CRITICAL();
-			while(uxQueueMessagesWaiting(Radio_echo)>0 && pos <49)
-			{
-				xQueueReceive(Radio_echo, buftx+pos, 0);
-				pos++;
-			}
-			//taskEXIT_CRITICAL();
+			rfm69_send(buftx, buftx_pos);
+			buftx_full = 0;
+			buftx_pos = 0;
+		}
 
-			rfm69_send(buftx,pos);
+		if(uxQueueMessagesWaiting(Radio_echo)>0)
+		{
+			char msg_len;
+			xQueuePeek(Radio_echo, &msg_len, 0);
+
+			if(msg_len+buftx_pos+2 > max_packet_len)
+			{
+				buftx_full = 1; //send the packet
+			}
+			else
+			{
+				buftx[buftx_pos] = 'E'; //echo ctr val
+				buftx_pos++;
+				buftx[buftx_pos] = msg_len; //echo ctr val
+				buftx_pos++;
+				xQueueReceive(Radio_echo, &msg_len, 0);
+
+				for(uint8_t i = 0; i<msg_len; i++)
+				{
+					xQueueReceive(Radio_echo, buftx+buftx_pos, 1);
+					buftx_pos++;
+				}
+			}
 		}
 		else if(uxQueueMessagesWaiting(Barometer_telemetry)>0)
 		{
-			buftx[0] = 'A';
-			xQueueReceive(Barometer_telemetry, buftx+1, 0);
-			rfm69_send(buftx,5);
+			if(5+buftx_pos > max_packet_len)
+			{
+				buftx_full = 1; //send the packet
+			}
+			else
+			{
+				buftx[buftx_pos] = 'A';
+				xQueueReceive(Barometer_telemetry, buftx+buftx_pos+1, 0);
+				buftx_pos += 5;
+			}
 		}
 		else
 		{
-
-			uint8_t len = sprintf(buftx, "Wyslano: %d wiadomosci", p_c);
-
-			rfm69_send(buftx, len);
-
-			p_c++;
-
+			vTaskDelay(10); //wait for new data
 		}
-		vTaskDelay(5);
+
 	}
 }
 

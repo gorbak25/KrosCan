@@ -18,6 +18,7 @@
 
 #include "tasks/radio/radio.h"
 #include "tasks/bmp180/bmp180.h"
+#include "tasks/imu/imu.h"
 
 //externs
 extern SPI_HandleTypeDef hspi1;
