@@ -91,10 +91,10 @@ void HandleRadioRX()
 	}
 }
 
-char buftx[50];
+char buftx[60];
 int buftx_pos;
 uint8_t buftx_full;
-const uint8_t max_packet_len = 50;
+const uint8_t max_packet_len = 60;
 void HandleRadioTX()
 {
 	buftx_pos = 0;
@@ -141,9 +141,22 @@ void HandleRadioTX()
 			}
 			else
 			{
-				buftx[buftx_pos] = 'A';
+				buftx[buftx_pos] = 'B';
 				xQueueReceive(Barometer_telemetry, buftx+buftx_pos+1, 0);
 				buftx_pos += sizeof(BMP180TelemetryData)+1;
+			}
+		}
+		else if(uxQueueMessagesWaiting(IMU_telemetry)>0)
+		{
+			if(1+sizeof(IMUTelemetryData)+buftx_pos > max_packet_len)
+			{
+				buftx_full = 1; //send the packet
+			}
+			else
+			{
+				buftx[buftx_pos] = 'I';
+				xQueueReceive(IMU_telemetry, buftx+buftx_pos+1, 0);
+				buftx_pos += sizeof(IMUTelemetryData)+1;
 			}
 		}
 		else

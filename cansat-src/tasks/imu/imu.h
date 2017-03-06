@@ -187,6 +187,14 @@
 #define AK8963_ADDRESS  0x18   // Address of magnetometer
 #endif // AD0
 
+typedef struct
+{
+	float q[4]; //rotation quatermion
+	float a[3]; //acceleration
+	float g[3]; //angular accel
+	float m[3]; //magnetic field
+	uint32_t time; //timestamp - ms resolution
+} IMUTelemetryData;
 
 // Set initial input parameters
 typedef enum {
@@ -213,6 +221,7 @@ I2C_HandleTypeDef* imu_i2c;
 //timer for imu_micros function
 extern TIM_HandleTypeDef htim2;
 extern FIL imu_log;
+extern QueueHandle_t IMU_telemetry;
 
 //Tasks
 void HandleIMU();

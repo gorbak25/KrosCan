@@ -24,6 +24,7 @@
 #include <limits.h>
 
 #include "../bmp180/bmp180.h"
+#include "../imu/imu.h"
 
 #define RFM69_MAX_FIFO		64 ///< Maximum bytes FIFO
 

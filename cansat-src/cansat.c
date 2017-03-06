@@ -25,6 +25,7 @@ SemaphoreHandle_t Radio_mutex;
 
 QueueHandle_t Radio_echo;
 QueueHandle_t Barometer_telemetry;
+QueueHandle_t IMU_telemetry;
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -43,6 +44,7 @@ void CreateSynchronizationObjects()
 
 	Radio_echo = xQueueCreate(256, sizeof(char));
 	Barometer_telemetry = xQueueCreate(32, sizeof(BMP180TelemetryData));
+	IMU_telemetry = xQueueCreate(32, sizeof(IMUTelemetryData));
 
 }
 

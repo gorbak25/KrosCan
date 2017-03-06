@@ -11,9 +11,11 @@ uint8_t Mmode = 0x06;
 float pitch, yaw, roll;
 float temperature;   // Stores the real internal chip temperature in Celsius
 int16_t tempCount;   // Temperature raw count output
-unsigned long delt_t = 0; // Used to control display output rate
+unsigned long delt_t1 = 0; // Used to control display output rate
+unsigned long delt_t2 = 0;
 
-unsigned long count = 0, sumCount = 0; // used to control display output rate
+unsigned long count1 = 0, sumCount = 0; // used to control display output rate
+unsigned long count2 = 0;
 float deltat = 0.0f;  // integration interval for both filter schemes
 uint64_t lastUpdate = 0, firstUpdate = 0; // used to calculate integration interval
 uint64_t Now = 0;        // used to calculate integration interval
@@ -37,6 +39,7 @@ UINT bw;
 float rate;
 uint64_t last_data_update_time;
 uint8_t sd_card_packets = 0;
+IMUTelemetryData tel_data;
 void HandleIMU()
 {
 
@@ -105,18 +108,42 @@ void HandleIMU()
 		                         gy*DEG_TO_RAD, gz*DEG_TO_RAD, my,
 		                         mx, mz, deltat);
 
-		delt_t = HAL_GetTick() - count;
+		delt_t1 = HAL_GetTick() - count1;
 
-		//send Diagnostic information to ground station every 1000 ms
-		if (delt_t > 5000)
+		//send telemetry data to ground station every 100ms
+		if (delt_t1 > 100)
 		{
-			rate = (float)sumCount/(delt_t*0.001f);
+			tel_data.a[0] = ax;
+			tel_data.a[1] = ay;
+			tel_data.a[2] = az;
+			tel_data.g[0] = gx;
+			tel_data.g[1] = gy;
+			tel_data.g[2] = gz;
+			tel_data.m[0] = mx;
+			tel_data.m[1] = my;
+			tel_data.m[2] = mz;
+			tel_data.q[0] = *getQ();
+			tel_data.q[1] = *(getQ()+1);
+			tel_data.q[2] = *(getQ()+2);
+			tel_data.q[3] = *(getQ()+3);
+			tel_data.time = HAL_GetTick();
+
+			xQueueSendToBack(IMU_telemetry, &tel_data, 10000);
+
+			count1 = HAL_GetTick();
+		}
+
+		delt_t2 = HAL_GetTick() - count2;
+		//send Diagnostic information to ground station every 1000 ms
+		if (delt_t2 > 5000)
+		{
+			rate = (float)sumCount/(delt_t2*0.001f);
 
 			taskENTER_CRITICAL();
 			trace_printf("%d\n", (int)rate);
 			taskEXIT_CRITICAL();
 
-			count = HAL_GetTick();
+			count2 = HAL_GetTick();
 			sumCount = 0;
 		}
 
