@@ -42,7 +42,6 @@ uint8_t sd_card_packets = 0;
 IMUTelemetryData tel_data;
 void HandleIMU()
 {
-
 	imu_getAres();
 	imu_getGres();
 	imu_getMres();
@@ -51,6 +50,11 @@ void HandleIMU()
 	magbias[1] = +120.;
 	magbias[2] = +125.;
 
+	//write bias information
+	f_write(&imu_log, &gyroBias, 12, &bw);
+	f_write(&imu_log, &accelBias, 12, &bw);
+	f_sync(&imu_log);
+
 	for(;;)
 	{
 		//TODO: change to semaphore
@@ -58,6 +62,7 @@ void HandleIMU()
 		if (imu_readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01)
 		{
 			//save old data
+			f_putc('I', &imu_log);
 			f_write(&imu_log, &last_data_update_time, 8, &bw);
 
 			f_write(&imu_log, &ax, 4, &bw);
@@ -108,6 +113,12 @@ void HandleIMU()
 		                         gy*DEG_TO_RAD, gz*DEG_TO_RAD, my,
 		                         mx, mz, deltat);
 
+		//TODO: Maybe lower the save rate?
+		//write quatermion
+		f_putc('Q', &imu_log);
+		f_write(&imu_log, &Now, 8, &bw);
+		f_write(&imu_log, (void*)getQ(), 16, &bw);
+
 		delt_t1 = HAL_GetTick() - count1;
 
 		//send telemetry data to ground station every 100ms
@@ -128,7 +139,7 @@ void HandleIMU()
 			tel_data.q[3] = *(getQ()+3);
 			tel_data.time = HAL_GetTick();
 
-			xQueueSendToBack(IMU_telemetry, &tel_data, 10000);
+			xQueueSendToBack(IMU_telemetry, &tel_data, 0);
 
 			count1 = HAL_GetTick();
 		}
