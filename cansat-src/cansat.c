@@ -9,7 +9,9 @@
 
 FATFS sdCardFS;
 
-FIL radio_log;
+FIL barometer_log;
+FIL imu_log;
+FIL gps_log;
 
 TaskHandle_t tsk_radio_rx;
 TaskHandle_t tsk_radio_tx;
@@ -40,22 +42,47 @@ void CreateSynchronizationObjects()
 	Radio_mutex = xSemaphoreCreateMutex();
 
 	Radio_echo = xQueueCreate(256, sizeof(char));
-	Barometer_telemetry = xQueueCreate(32, sizeof(float));
+	Barometer_telemetry = xQueueCreate(32, sizeof(BMP180TelemetryData));
 
 }
+
+char filename_buffer[20];
 
 void CanSatMain()
 {
 	//initialize the file system
-	/*while (f_mount(&sdCardFS, "0:/", 0) != FR_OK)
+	while (f_mount(&sdCardFS, "0:/", 0) != FR_OK)
 	{
-		trace_printf("Failed to init SD-Card");
+		trace_printf("Failed to init SD-Card\n");
 	}
 
-	while (f_open(&radio_log, "radio.log", FA_WRITE | FA_OPEN_APPEND) != FR_OK)
+	//open log files without overwriting anything
+	int file_id = 0;
+	do
 	{
-		trace_printf("Failed to open radio log");
-	}*/
+		file_id++;
+		sprintf(filename_buffer, "BMP%d", file_id);
+	}
+	while(f_stat(filename_buffer, NULL) == FR_OK);
+
+	while (f_open(&barometer_log, filename_buffer, FA_WRITE | FA_CREATE_ALWAYS) != FR_OK)
+	{
+		trace_printf("Failed to create barometer log\n");
+	}
+
+	sprintf(filename_buffer, "IMU%d", file_id);
+	while (f_open(&imu_log, filename_buffer, FA_WRITE | FA_CREATE_ALWAYS) != FR_OK)
+	{
+		trace_printf("Failed to create IMU log\n");
+	}
+
+	sprintf(filename_buffer, "GPS%d", file_id);
+	while (f_open(&gps_log, filename_buffer, FA_WRITE | FA_CREATE_ALWAYS) != FR_OK)
+	{
+		trace_printf("Failed to create GPS log\n");
+	}
+
+	trace_printf("Filesystem initialized\n");
 
 	rfm69_init(hspi1, 1);
 	rfm69_setPowerDBm(-2);

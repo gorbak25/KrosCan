@@ -135,7 +135,7 @@ void HandleRadioTX()
 		}
 		else if(uxQueueMessagesWaiting(Barometer_telemetry)>0)
 		{
-			if(5+buftx_pos > max_packet_len)
+			if(1+sizeof(BMP180TelemetryData)+buftx_pos > max_packet_len)
 			{
 				buftx_full = 1; //send the packet
 			}
@@ -143,7 +143,7 @@ void HandleRadioTX()
 			{
 				buftx[buftx_pos] = 'A';
 				xQueueReceive(Barometer_telemetry, buftx+buftx_pos+1, 0);
-				buftx_pos += 5;
+				buftx_pos += sizeof(BMP180TelemetryData)+1;
 			}
 		}
 		else

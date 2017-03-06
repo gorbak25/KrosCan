@@ -26,6 +26,8 @@
 #include <limits.h>
 #include <math.h>
 
+#include "../../FATFS/src/ff.h"
+
 #ifndef BMP180_H
 #define BMP180_H
 
@@ -43,6 +45,13 @@ typedef enum
 	BMP180_ULTRAHIGHRES = 3   //lowest sampling rate highest accuracy
 } BMP180Mode;
 
+
+typedef struct
+{
+	int32_t presure;
+	float temperature;
+	uint32_t time;
+}BMP180TelemetryData;
 
 I2C_HandleTypeDef* bmp180_i2c;
 BMP180Mode oversampling;
@@ -69,6 +78,7 @@ uint16_t ac4, ac5, ac6;
 
 //externs
 extern QueueHandle_t Barometer_telemetry;
+extern FIL barometer_log;
 
 //Tasks
 void HandleBarometer();

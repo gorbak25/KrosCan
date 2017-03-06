@@ -33,7 +33,10 @@ float SelfTest[6];
 int16_t accelCount[3];
 
 
+UINT bw;
 float rate;
+uint64_t last_data_update_time;
+uint8_t sd_card_packets = 0;
 void HandleIMU()
 {
 
@@ -51,6 +54,29 @@ void HandleIMU()
 		//if new data is avaliable
 		if (imu_readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01)
 		{
+			//save old data
+			f_write(&imu_log, &last_data_update_time, 8, &bw);
+
+			f_write(&imu_log, &ax, 4, &bw);
+			f_write(&imu_log, &ay, 4, &bw);
+			f_write(&imu_log, &az, 4, &bw);
+
+			f_write(&imu_log, &gx, 4, &bw);
+			f_write(&imu_log, &gy, 4, &bw);
+			f_write(&imu_log, &gz, 4, &bw);
+
+			f_write(&imu_log, &mx, 4, &bw);
+			f_write(&imu_log, &my, 4, &bw);
+			f_write(&imu_log, &mz, 4, &bw);
+
+			sd_card_packets++;
+			if(sd_card_packets==100)
+			{
+				f_sync(&imu_log);
+				sd_card_packets=0;
+			}
+
+			//obtain new data
 			imu_readAccelData(accelCount);
 			ax = (float)accelCount[0]*aRes;
 			ay = (float)accelCount[1]*aRes;
@@ -69,6 +95,8 @@ void HandleIMU()
 					   magbias[1];
 			mz = (float)magCount[2]*mRes*magCalibration[2] -
 					   magbias[2];
+
+			last_data_update_time = imu_micros();
 		}
 
 		//update quaternion
@@ -80,7 +108,7 @@ void HandleIMU()
 		delt_t = HAL_GetTick() - count;
 
 		//send Diagnostic information to ground station every 1000 ms
-		if (delt_t > 1000)
+		if (delt_t > 5000)
 		{
 			rate = (float)sumCount/(delt_t*0.001f);
 

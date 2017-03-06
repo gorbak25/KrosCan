@@ -23,6 +23,8 @@
 #include <semphr.h>
 #include <limits.h>
 
+#include "../bmp180/bmp180.h"
+
 #define RFM69_MAX_FIFO		64 ///< Maximum bytes FIFO
 
 /**

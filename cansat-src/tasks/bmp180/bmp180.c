@@ -21,14 +21,31 @@
 
 #include "bmp180.h"
 
+UINT bw;
+uint8_t sd_card_packets;
+BMP180TelemetryData cur_data;
 void HandleBarometer()
 {
-	float cur_altitude;
 	for(;;)
 	{
-		cur_altitude = bmp180_readAltitude(BMP180_STANDARD_PRESURE);
-		xQueueSendToBack(Barometer_telemetry, (void*)(&cur_altitude), 100);
-		vTaskDelay(100);
+		//read data
+		cur_data.presure = bmp180_readPressure();
+		cur_data.temperature = bmp180_readTemperature();
+		cur_data.time = HAL_GetTick();
+		//write data to sd card
+		f_write(&barometer_log, &cur_data.time, 4, &bw);
+		f_write(&barometer_log, &cur_data.presure, 4, &bw);
+		f_write(&barometer_log, &cur_data.time, 4, &bw);
+
+		sd_card_packets++;
+		if(sd_card_packets == 20)
+		{
+			f_sync(&barometer_log);
+			sd_card_packets = 0;
+		}
+
+		//send data to ground station
+		xQueueSendToBack(Barometer_telemetry, (void*)(&cur_data), 0);
 	}
 }
 

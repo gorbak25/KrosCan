@@ -17,6 +17,7 @@
 #include <limits.h>
 
 #include "quaternionFilters.h"
+#include "../../FATFS/src/ff.h"
 
 #define DEG_TO_RAD 0.017453292519943295769236907684886f
 
@@ -211,6 +212,7 @@ typedef enum {
 I2C_HandleTypeDef* imu_i2c;
 //timer for imu_micros function
 extern TIM_HandleTypeDef htim2;
+extern FIL imu_log;
 
 //Tasks
 void HandleIMU();
